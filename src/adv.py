@@ -1,4 +1,6 @@
+# which is where the main logic for the game should live
 from room import Room
+from player import Player
 
 # Declare all the rooms
 
@@ -38,7 +40,10 @@ room['treasure'].s_to = room['narrow']
 #
 
 # Make a new player object that is currently in the 'outside' room.
-
+player_0 = Player('Sledge', room['outside'])
+print(player_0)
+print(room['outside'])
+# print(player.get_intructions())
 # Write a loop that:
 #
 # * Prints the current room name
