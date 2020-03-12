@@ -1,16 +1,8 @@
 # which is where the main logic for the game should live
 from room import Room
 from player import Player
-from item import Item
+#
 
-# Declare all the items
-
-items = {
-    "sword": Item("sword", "Kills Large Monsters"),
-    "dagger": Item("dagger", "Light Item for Thieving"),
-    "torch": Item("torch", "Helps to see in The Dark Room"),
-    "drumstick": Item("drumstick", "Helps build stamina")
-}
 
 # Declare all the rooms
 
@@ -45,10 +37,6 @@ room['narrow'].w_to = room['foyer']
 room['narrow'].n_to = room['treasure']
 room['treasure'].s_to = room['narrow']
 
-
-# link items to room
-room['outside'].items = [items['drumstick']]
-
 #
 # Main
 #
@@ -56,17 +44,32 @@ room['outside'].items = [items['drumstick']]
 # Make a new player object that is currently in the 'outside' room.
 player_0 = Player('Sledge', room['outside'])
 
-# print(player_0)
-# print(room['outside'])
-# print(player.get_intructions())
+game_status = True
 
 # Write a loop that:
-paths = ["n", "e", "s", "w"]
-# * Prints the current room name
-# * Prints the current description (the textwrap module might be useful here).
+while game_status:
+    direction = input(
+        '\nWhat direction would you like to travel? Keys: n, s, e, or w\n')
+
+    try:
+        if direction == 'q':
+            print('Exiting!\n')
+            game_status = False
 # * Waits for user input and decides what to do.
-#
 # If the user enters a cardinal direction, attempt to move to the room there.
-# Print an error message if the movement isn't allowed.
-#
-# If the user enters "q", quit the game.
+        if direction == 'n' or direction == 'e' or direction == 's' or direction == 'w':
+            attrib = f'{direction}_to'
+# * Prints the current description (the textwrap module might be useful here).
+            if player_0.current_room.__dict__[attrib] == None:
+                print(
+                    '\nTravel Ban has been initiated on this path. Choose another direction.\n')
+# * Prints the current room name
+            else:
+                player_0.current_room = player_0.current_room.__dict__[
+                    attrib]
+                print(player_0)
+
+        else:
+            print('Invalid input. Please try again.\n')
+    except ValueError:
+        print('Invalid input.\n')
