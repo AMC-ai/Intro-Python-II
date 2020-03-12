@@ -1,8 +1,21 @@
-# which is where the main logic for the game should live
 from room import Room
 from player import Player
-#
+from item import Item
+import os
+import sys
+os.system("cls")
 
+# Small change for git PR
+
+sys.path.append("/items")
+
+# REPL
+
+deaths = 0
+level = 0
+exp = 0
+
+choices = ['n', 's', 'e', 'w']
 
 # Declare all the rooms
 
@@ -30,10 +43,15 @@ earlier adventurers. The only exit is to the south."""),
 
 room['outside'].n_to = room['foyer']
 room['foyer'].s_to = room['outside']
+room["foyer"].set_items([Item("Orb of Experience", "Grants double EXP")])
 room['foyer'].n_to = room['overlook']
 room['foyer'].e_to = room['narrow']
 room['overlook'].s_to = room['foyer']
+room["overlook"].set_items(
+    [Item("Book of code skills", "Adds +50 Awesomeness")])
+room["overlook"].set_items([Item("Mana vial", "Adds +30 Mana")])
 room['narrow'].w_to = room['foyer']
+room["narrow"].set_items([Item("Health vial", "Adds +25 Health")])
 room['narrow'].n_to = room['treasure']
 room['treasure'].s_to = room['narrow']
 
@@ -42,33 +60,165 @@ room['treasure'].s_to = room['narrow']
 #
 
 # Make a new player object that is currently in the 'outside' room.
-player_0 = Player('Sledge', room['outside'])
-
-game_status = True
+player_name = input("Type in your characters name: ")
+player = Player(player_name, room['outside'], 100, 200, 100, 1)
 
 # Write a loop that:
-while game_status:
-    direction = input(
-        '\nWhat direction would you like to travel? Keys: n, s, e, or w\n')
-
-    try:
-        if direction == 'q':
-            print('Exiting!\n')
-            game_status = False
-# * Waits for user input and decides what to do.
-# If the user enters a cardinal direction, attempt to move to the room there.
-        if direction == 'n' or direction == 'e' or direction == 's' or direction == 'w':
-            attrib = f'{direction}_to'
+# a
+# * Prints the current room name
 # * Prints the current description (the textwrap module might be useful here).
-            if player_0.current_room.__dict__[attrib] == None:
+# * Waits for user input and decides what to do.
+#
+# If the user enters a cardinal direction, attempt to move to the room there.
+# Print an error message if the movement isn't allowed.
+#
+# If the user enters "q", quit the game.
+item1used = False
+item2used = False
+item3used = False
+
+while True:
+    # print
+    print(
+        f"\n\u001b[31mDeaths: {deaths} \n\u001b[34mEXP: {exp}/100 \n\u001b[32mLevel: {level}\u001b[37m")
+    print(player)
+    # read
+    cmd = input(
+        "Directional Controls: \u001b[34m[n] [s] [e] [w]\u001b[37m \nOpen Item Menu: \u001b[34m[i]\u001b[37m\nCharacter Stats: \u001b[34m[c]\u001b[37m\n\u001b[33mInput : \u001b[37m")
+    # Item effects
+
+    if "Orb of Experience" in str(player.stash):
+        player.multiplier = 2
+    if "Book of code skills" in str(player.stash):
+        if item1used == False:
+            player.awesomeness = player.awesomeness + 50
+            item1used = True
+    if "Mana vial" in str(player.stash):
+        if item2used == False:
+            player.mana = player.mana + 30
+            item2used = True
+    if "Health vial" in str(player.stash):
+        if item3used == False:
+            player.health = player.health + 25
+            item3used = True
+    # Evaluate
+    try:
+        if cmd == "q":
+            print("Goodbye!")
+            break
+
+        if cmd == 'n' or cmd == 'e' or cmd == 's' or cmd == 'w':
+            attrib = f'{cmd}_to'
+            print(str(player.stash) + "player stash here")
+
+            if player.current_room.__dict__[attrib] == None:
                 print(
-                    '\nTravel Ban has been initiated on this path. Choose another direction.\n')
+                    "\n\u001b[31m !!!! You've chosen a fatal direction and have respawned at the entrance !!!!\n You will still keep your items")
+                deaths = deaths + 1
+                player = Player(
+                    player_name, room['outside'], 100, 100, 100, player.multiplier)
 # * Prints the current room name
             else:
-                player_0.current_room = player_0.current_room.__dict__[
+                player.current_room = player.current_room.__dict__[
                     attrib]
-                print(player_0)
+                print(player)
+                if "Orb of Experience" in str(player.stash):
+                    multiplier = 2
+                else:
+                    multiplier = 1
 
+                exp = exp + 10 * multiplier
+                if exp > 99:
+                    remaining_exp = exp - 100
+                    exp = remaining_exp
+                    level = level + 1
+                    talents = input(
+                        "You leveled up! Choose a bonus! \n [h] Health\n [m] Mana\n [a] Awesomeness\n\u001b[33mInput :\u001b[37m ")
+                    if talents == "h":
+                        player.health = player.health + 15
+                        print("\nPlayer health has increased to " +
+                              str(player.health) + "!!")
+                    elif talents == "m":
+                        player.mana = player.mana + 20
+                        print("\nPlayer mana has increased to " +
+                              str(player.mana) + "!!")
+                    elif talents == "a":
+                        player.awesomeness = player.awesomeness + 50
+                        print("\nPlayer awesomeness has increased to " +
+                              str(player.awesomeness) + "!!")
+        elif cmd == "i":
+            if player.stash == []:
+                print("\n\u001b[31mNo items in inventory\u001b[37m")
+            else:
+                print(player.stash)
+            roomitems = []
+            stashitems = []
+            if player.stash:
+                for i in player.stash:
+                    stashitems.append(i)
+            else:
+                stashitems = "\u001b[31m[No items in inventory]\u001b[37m"
+            if player.current_room.items:
+                for i in player.current_room.items:
+                    roomitems.append(i.name)
+            else:
+                roomitems = "\u001b[31m[No items in room]\u001b[37m"
+            select = input("Inventory Controls:\n \u001b[34m[b]\u001b[37m Back\n \u001b[34m[p]\u001b[37m Pickup Items in room: \u001b[34m" + str(
+                roomitems) + "\u001b[37m\n \u001b[34m[d]\u001b[37m Drop Items here: \u001b[34m" + str(stashitems) + "\u001b[37m\n\u001b[33mInput :\u001b[37m ")
+
+            if select == "b":
+                pass
+            elif select == "p":
+                for i in roomitems:
+                    confirm = input("Are you sure you wish to pick up " +
+                                    str(i) + "? \u001b[34m[y] [n]\u001b[37m : ")
+                    if confirm == "y":
+                        player.stash.append(i)
+                        print("You've acquired " + i + "!!")
+                        if player.current_room.items[0].name == i:
+                            del player.current_room.items[0]
+                            print("\nRemoved " + str(i) + " from " +
+                                  str(player.current_room.name) + "")
+                        elif player.current_room.items[1].name == i:
+                            del player.current_room.items[1]
+                            print("\nRemoved " + str(i) + " from " +
+                                  str(player.current_room.name) + "")
+                        elif player.current_room.items[2].name == i:
+                            del player.current_room.items[2]
+                            print("\nRemoved " + str(i) + " from " +
+                                  str(player.current_room.name) + "")
+                        elif player.current_room.items[3].name == i:
+                            del player.current_room.items[3]
+                            print("\nRemoved " + str(i) + " from " +
+                                  str(player.current_room.name) + "")
+            elif select == "d":
+                for i in player.stash:
+                    dropchoice = input(
+                        "Are you sure you want to drop " + i + " in " + "? \u001b[34m[y] [n]\u001b[37m : ")
+                    if dropchoice == "y":
+                        player.current_room.set_items(
+                            [Item(i, "Dropped item")])
+                        player.stash.remove(i)
+                    elif dropchoice == "n":
+                        print("Declined to drop " + i)
+                    else:
+                        print("Invalid input")
+                        pass
+            else:
+                pass
+        elif cmd == "c":
+            print("\nHere you can view your character stats\n")
+            print("\u001b[31mHealth: \u001b[37m", player.health, "")
+            print("\u001b[34mMana:\u001b[37m ", player.mana, "")
+            print("\u001b[32mAwesomeness: \u001b[37m", player.awesomeness, "")
+            print("\u001b[33mExperience Multiplier:\u001b[37m x",
+                  player.multiplier, "")
+            back = input(
+                "\nPress \u001b[34m[b] \u001b[37mto go back\n\u001b[33mInput\u001b[37m : ")
+            if back == "b":
+                pass
+            else:
+                print("Invalid input")
         else:
             print('Invalid input. Please try again.\n')
     except ValueError:
