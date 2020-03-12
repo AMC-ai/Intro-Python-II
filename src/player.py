@@ -8,7 +8,6 @@ class Player:
         self.name = name
         self.current_room = current_room
         self.stash = []
-        self.visible_path = False
 
     def __str__(self):
         return f'{self.name} is located {self.current_room}'
