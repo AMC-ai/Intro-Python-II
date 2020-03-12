@@ -1,6 +1,16 @@
 # which is where the main logic for the game should live
 from room import Room
 from player import Player
+from item import Item
+
+# Declare all the items
+
+items = {
+    "sword": Item("sword", "Kills Large Monsters"),
+    "dagger": Item("dagger", "Light Item for Thieving"),
+    "torch": Item("torch", "Helps to see in The Dark Room"),
+    "drumstick": Item("drumstick", "Helps build stamina")
+}
 
 # Declare all the rooms
 
@@ -35,17 +45,23 @@ room['narrow'].w_to = room['foyer']
 room['narrow'].n_to = room['treasure']
 room['treasure'].s_to = room['narrow']
 
+
+# link items to room
+room['outside'].items = [items['drumstick']]
+
 #
 # Main
 #
 
 # Make a new player object that is currently in the 'outside' room.
 player_0 = Player('Sledge', room['outside'])
-print(player_0)
-print(room['outside'])
+
+# print(player_0)
+# print(room['outside'])
 # print(player.get_intructions())
+
 # Write a loop that:
-#
+paths = ["n", "e", "s", "w"]
 # * Prints the current room name
 # * Prints the current description (the textwrap module might be useful here).
 # * Waits for user input and decides what to do.
